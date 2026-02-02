@@ -1,0 +1,209 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* MindEase Design System - Calming, supportive color palette for mental health
+   All colors are HSL for consistency.
+*/
+
+@layer base {
+  :root {
+    /* Calming backgrounds */
+    --background: 210 40% 98%;
+    --foreground: 220 20% 30%;
+
+    /* Cards with soft warmth */
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 30%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 30%;
+
+    /* Primary - Soft calming blue */
+    --primary: 197 71% 73%;
+    --primary-foreground: 220 30% 20%;
+
+    /* Secondary - Soft lavender */
+    --secondary: 270 50% 95%;
+    --secondary-foreground: 270 30% 35%;
+
+    /* Muted - Very light gray with blue tint */
+    --muted: 210 30% 96%;
+    --muted-foreground: 220 15% 50%;
+
+    /* Accent - Mint green for positive actions */
+    --accent: 160 45% 90%;
+    --accent-foreground: 160 40% 25%;
+
+    /* Warm accent - Peach for CTAs */
+    --warm: 25 100% 92%;
+    --warm-foreground: 25 60% 30%;
+
+    /* Success - Soft green */
+    --success: 145 50% 85%;
+    --success-foreground: 145 50% 25%;
+
+    /* Destructive - Muted coral instead of harsh red */
+    --destructive: 0 50% 85%;
+    --destructive-foreground: 0 50% 30%;
+
+    --border: 210 30% 90%;
+    --input: 210 30% 94%;
+    --ring: 197 71% 73%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar - Soft blue-gray */
+    --sidebar-background: 210 30% 97%;
+    --sidebar-foreground: 220 20% 35%;
+    --sidebar-primary: 197 71% 73%;
+    --sidebar-primary-foreground: 220 30% 20%;
+    --sidebar-accent: 160 45% 92%;
+    --sidebar-accent-foreground: 160 40% 25%;
+    --sidebar-border: 210 30% 92%;
+    --sidebar-ring: 197 71% 73%;
+
+    /* Chat specific */
+    --chat-user: 197 60% 92%;
+    --chat-bot: 0 0% 100%;
+    --chat-bot-border: 210 30% 92%;
+
+    /* Mood colors - gentle gradient from sad to happy */
+    --mood-1: 0 40% 85%;
+    --mood-2: 25 50% 88%;
+    --mood-3: 45 50% 90%;
+    --mood-4: 100 40% 88%;
+    --mood-5: 145 50% 85%;
+  }
+
+  .dark {
+    --background: 220 25% 10%;
+    --foreground: 210 30% 90%;
+
+    --card: 220 25% 12%;
+    --card-foreground: 210 30% 90%;
+
+    --popover: 220 25% 12%;
+    --popover-foreground: 210 30% 90%;
+
+    --primary: 197 60% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 270 30% 20%;
+    --secondary-foreground: 270 30% 90%;
+
+    --muted: 220 20% 18%;
+    --muted-foreground: 210 20% 65%;
+
+    --accent: 160 35% 20%;
+    --accent-foreground: 160 40% 85%;
+
+    --warm: 25 50% 25%;
+    --warm-foreground: 25 60% 90%;
+
+    --success: 145 40% 25%;
+    --success-foreground: 145 50% 90%;
+
+    --destructive: 0 40% 25%;
+    --destructive-foreground: 0 40% 90%;
+
+    --border: 220 20% 20%;
+    --input: 220 20% 18%;
+    --ring: 197 60% 50%;
+
+    --sidebar-background: 220 25% 8%;
+    --sidebar-foreground: 210 30% 85%;
+    --sidebar-primary: 197 60% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 160 35% 18%;
+    --sidebar-accent-foreground: 160 40% 85%;
+    --sidebar-border: 220 20% 18%;
+    --sidebar-ring: 197 60% 50%;
+
+    --chat-user: 197 50% 25%;
+    --chat-bot: 220 25% 15%;
+    --chat-bot-border: 220 20% 22%;
+
+    --mood-1: 0 35% 30%;
+    --mood-2: 25 40% 32%;
+    --mood-3: 45 40% 35%;
+    --mood-4: 100 35% 32%;
+    --mood-5: 145 40% 30%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', 'Open Sans', system-ui, sans-serif;
+  }
+
+  /* Smooth scrolling for accessibility */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Focus states for accessibility */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer components {
+  /* Calming button hover effect */
+  .btn-calm {
+    @apply transition-all duration-200 ease-in-out;
+  }
+  
+  .btn-calm:hover {
+    @apply transform scale-[1.02] shadow-sm;
+  }
+
+  /* Gentle card shadow */
+  .card-calm {
+    @apply shadow-sm hover:shadow-md transition-shadow duration-200;
+  }
+
+  /* Typing indicator animation */
+  @keyframes typing-bounce {
+    0%, 60%, 100% {
+      transform: translateY(0);
+    }
+    30% {
+      transform: translateY(-4px);
+    }
+  }
+
+  .typing-dot {
+    animation: typing-bounce 1.4s infinite ease-in-out;
+  }
+
+  .typing-dot:nth-child(1) {
+    animation-delay: 0s;
+  }
+
+  .typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  /* Mood emoji hover */
+  .mood-emoji {
+    @apply transition-transform duration-150 cursor-pointer;
+  }
+
+  .mood-emoji:hover {
+    @apply transform scale-125;
+  }
+
+  .mood-emoji.selected {
+    @apply transform scale-110;
+  }
+}
