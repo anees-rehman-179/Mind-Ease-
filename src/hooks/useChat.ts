@@ -2,14 +2,23 @@ import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { getRagContext } from '@/lib/ragDocuments';
 
-// Local Groq API configuration
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
-const USE_LOCAL_GROQ = !!GROQ_API_KEY && GROQ_API_KEY !== 'your_groq_api_key_here';
+// OpenRouter API configuration
+const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
+const USE_OPENROUTER = !!OPENROUTER_API_KEY && OPENROUTER_API_KEY !== 'your_openrouter_api_key_here';
 
-// Function to call Groq API directly
-async function callGroqAPI(query: string, conversationHistory: { role: string; content: string }[]): Promise<string> {
+// Function to call OpenRouter API (ChatGPT) with RAG context
+async function callOpenRouterAPI(query: string, conversationHistory: { role: string; content: string }[]): Promise<string> {
+  const ragContext = getRagContext();
   const systemPrompt = `You are MindEase, an empathetic mental wellness companion trained in CBT (Cognitive Behavioral Therapy) principles. Your role is to provide supportive, non-judgmental, and helpful responses for individuals experiencing LOW TO MILD depressive symptoms only.
+
+## KNOWLEDGE BASE (DSM-5-TR Aligned RAG Context)
+Use the following clinical knowledge base to inform your responses. This context contains DSM-5-TR aligned guidelines for symptom screening, CBT interventions, safety protocols, and escalation rules:
+
+${ragContext}
+
+## END OF KNOWLEDGE BASE
 
 ## YOUR SCOPE (What You CAN Support)
 You are designed for LOW-INTENSITY support only. You may help with:
@@ -101,14 +110,16 @@ You MUST NOT provide therapeutic support for (refer out immediately):
 
 Remember: You are a low-intensity emotional support system, NOT a replacement for therapy or clinical services.`;
 
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${GROQ_API_KEY}`,
+      'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
       'Content-Type': 'application/json',
+      'HTTP-Referer': window.location.origin,
+      'X-Title': 'MindEase',
     },
     body: JSON.stringify({
-      model: 'llama-3.1-8b-instant',
+      model: 'openai/gpt-3.5-turbo',
       messages: [
         { role: 'system', content: systemPrompt },
         ...conversationHistory,
@@ -121,7 +132,7 @@ Remember: You are a low-intensity emotional support system, NOT a replacement fo
 
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`Groq API error: ${error}`);
+    throw new Error(`OpenRouter API error: ${error}`);
   }
 
   const data = await response.json();
@@ -140,12 +151,6 @@ export interface ChatSession {
   title: string;
   timestamp: Date;
 }
-
-const cbtResponses: Record<string, string[]> = {
-  sad: ["I hear that you're feeling sad, and that's valid. Would you like to try a thought reframing exercise?", "Thank you for sharing. Sadness is natural. What's been on your mind today?"],
-  anxious: ["Anxiety can be overwhelming. Let's try a grounding technique: what are 5 things you can see?", "I understand. Anxiety often looks at the future. What specific worry is present?"],
-  default: ["I'm here to support you. Would you like to explore this further or try a calming exercise?"]
-};
 
 const welcomeMessage: ChatMessage = {
   id: 'welcome',
@@ -260,19 +265,8 @@ export function useChat() {
 
     let isNewSession = currentSessionId.startsWith(TEMP_SESSION_PREFIX);
 
-    if (isGuest) {
-      // Guest mode: Simulate typing and response locally
-      setIsTyping(true);
-      await new Promise(r => setTimeout(r, 1500));
-      const botContent = cbtResponses.default[0];
-      const botMsg: ChatMessage = { id: (Date.now() + 1).toString(), content: botContent, sender: 'bot', timestamp: new Date() };
-      setMessages(prev => [...prev, botMsg]);
-      setIsTyping(false);
-      return;
-    }
-
-    // Use local Groq API if configured
-    if (USE_LOCAL_GROQ) {
+    // Use OpenRouter API for both guest and authenticated users
+    if (USE_OPENROUTER || isGuest) {
       setIsTyping(true);
       try {
         // Build conversation history from recent messages (last 10)
@@ -281,7 +275,7 @@ export function useChat() {
           content: m.content
         }));
         
-        const botResponse = await callGroqAPI(content, recentMessages);
+        const botResponse = await callOpenRouterAPI(content, recentMessages);
         
         const botMsg: ChatMessage = { 
           id: (Date.now() + 1).toString(), 
@@ -291,8 +285,8 @@ export function useChat() {
         };
         setMessages(prev => [...prev, botMsg]);
         
-        // Optionally save to database if user is authenticated
-        if (user) {
+        // Save to database if user is authenticated (not guest)
+        if (user && !isGuest) {
           try {
             let actualSessionId = currentSessionId;
             
@@ -343,10 +337,10 @@ export function useChat() {
           }
         }
       } catch (error: any) {
-        console.error('Groq API Error:', error);
+        console.error('OpenRouter API Error:', error);
         toast({ 
           title: "API Error", 
-          description: error.message || "Could not get response from Groq.", 
+          description: error.message || "Could not get response from OpenRouter.", 
           variant: "destructive" 
         });
       } finally {
